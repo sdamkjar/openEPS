@@ -33,11 +33,11 @@ firstTime = False
 
 try:
 
-    log = logData2()
+    log = data_logger()
 
     scope = log.connect('DS7034')
     load  = log.connect('DL3021')
-    dmm = log.connect('KS34460A')
+    dmm = log.connect('Keysight34460A')
     psu = log.connect('DP832')
 
     log.add('Vin',scope,'VAVG_STAT',vinChannel)
@@ -81,7 +81,7 @@ try:
             print('\033[93m' +"Warning! Unable to configure channel %d. Reconnect the probe."%(channel)+'\033[39m')
             input("Press Enter to continue...\n")
 
-    dmm.conf_curr_dc()
+    dmm.configure('CURRENT:DC', 1.0, 0.0001)
     psu.set_voltage(1,psu_voltage)
     psu.toggle_output(1,1)
     load.configure_output_sense()
@@ -223,7 +223,7 @@ try:
 ############################## TAKE MEASUREMENTS ##############################
 
             scope.measure_stat_reset()
-            dmm.measure_stat_reset(50)
+            dmm.start_measurement(50)
             loader.delay_with_loading_bar(measurement_time,'Waiting for measurements')
             print("\rRecording data:")
             log.get()
