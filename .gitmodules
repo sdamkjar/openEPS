@@ -1,0 +1,6 @@
+[submodule "altium_libraries"]
+	path = altium_libraries
+	url = https://github.com/sdamkjar/altium_libraries
+[submodule "hardware/libraries"]
+	path = hardware/libraries
+	url = https://github.com/sdamkjar/altium_libraries
