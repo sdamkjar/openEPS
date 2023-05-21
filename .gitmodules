@@ -4,3 +4,6 @@
 [submodule "hardware/libraries"]
 	path = hardware/libraries
 	url = https://github.com/sdamkjar/altium_libraries
+[submodule "testing/lab_data_logging"]
+	path = testing/lab_data_logging
+	url = https://github.com/sdamkjar/lab_data_logging
