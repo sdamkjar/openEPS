@@ -37,15 +37,15 @@ try:
 
     scope = log.connect('DS7034')
     load  = log.connect('DL3021')
-    dmm = log.connect('Keysight34460A')
-    psu = log.connect('DP832')
+    dmm =   log.connect('Keysight34460A')
+    psu =   log.connect('DP832')
 
-    log.add('Vin',scope,'VAVG_STAT',vinChannel)
-    log.add('VinPP',scope,'VPP_STAT',vinChannel)
-    log.add('Vout',scope,'VAVG_STAT',voutChannel)
-    log.add('VoutPP',scope,'VPP_STAT',voutChannel)
-    log.add('Iin',dmm,'STAT')
-    log.add('Iout',load,'CURR_AVG')
+    log.add(scope,'VAVG_STAT',channel=vinChannel ,label='Vin'   )
+    log.add(scope,'VPP_STAT' ,channel=vinChannel ,label='VinPP' )
+    log.add(scope,'VAVG_STAT',channel=voutChannel,label='Vout'  )
+    log.add(scope,'VPP_STAT' ,channel=voutChannel,label='VoutPP')
+    log.add(dmm  ,'STAT'                         ,label='Iin'   )
+    log.add(load ,'CURR_AVG'                     ,label='Iout'  )
 
     log.newFile('ltc3119AsShipped.txt')
 
