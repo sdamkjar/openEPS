@@ -35,7 +35,7 @@ try:
 
     log = data_logger()
 
-    scope = log.connect('DS7034')
+    scope = log.connect('RigolDS7034')
     load  = log.connect('DL3021')
     dmm =   log.connect('Keysight34460A')
     psu =   log.connect('DP832')
