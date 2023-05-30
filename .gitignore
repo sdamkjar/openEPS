@@ -15,6 +15,7 @@ __Previews
 *.log
 *.htm
 *.$$$
+*.Harness
 
 #useless dirs
 Project\ Outputs
