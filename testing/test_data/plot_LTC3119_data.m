@@ -1,15 +1,18 @@
 close all
-clear all
+clear 'mppt_test_data' 'mpptiv_test_data' 'iv_test_data' 'mppt_test_data_upanddown'
 
-addpath("lab_data_logging")
-
-extract_data()
+addpath("..\lab_data_logging")
+try
+    extract_data()
+catch
+    % Do nothing %
+end
 
 run_UI()
     
 function run_UI()
 
-    load('test_data.mat')
+    load('test_data.mat', 'mppt_test_data', 'mpptiv_test_data', 'iv_test_data');
     
     % Create a UI figure
     fig = uifigure('Name', 'Select Plots');
@@ -270,9 +273,10 @@ function extract_data()
     iv_test_data(2) = loadData("iv_test_data\ltc3119iv(vin=4.0V)1.txt","Vin=4.0V");
     iv_test_data(3) = loadData("iv_test_data\ltc3119iv(vin=6.0V)1.txt","Vin=6.0V");
     iv_test_data(4) = loadData("iv_test_data\ltc3119iv(vin=9.0V)1.txt","Vin=9.0V");
-    %iv_test_data(5) = loadData("iv_test_data\ltc3119iv(vin=12.0V)1.txt","Vin=12.0V");
+    iv_test_data(5) = loadData("iv_test_data\ltc3119iv(vin=12.0V)1.txt","Vin=12.0V");
     
+    mppt_test_data_upanddown(1) = loadData("mppt_test_data_upanddown\ltc3119mppt_upanddown(0.4A).txt","Iout=0.4A");
 
     % Save the variables in a .mat file
-    save('test_data.mat', 'mppt_test_data', 'mpptiv_test_data', 'iv_test_data');
+    save('test_data.mat', 'mppt_test_data', 'mpptiv_test_data', 'iv_test_data', 'mppt_test_data_upanddown');
 end
