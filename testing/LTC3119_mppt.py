@@ -23,16 +23,19 @@ vout_channel = 1
 sw1_channel  = 2
 dac_channel  = 4
 
-load_current = 0.3 # [A]
+load_current = 0.4 # [A]
 
-measurement_time = 20 # [seconds]
 settling_time    = 5  # [seconds]
 
-initial_dac_voltage = 0.5 # [V]
+initial_dac_voltage = 0.4 # [V]
 final_dac_voltage   = 1.5 # [V]
 dac_voltage_step    = 0.01 # [V]
 
-dac_voltage_list = numpy.arange(initial_dac_voltage,final_dac_voltage+dac_voltage_step,dac_voltage_step)
+a1 = numpy.arange(initial_dac_voltage,final_dac_voltage+dac_voltage_step,dac_voltage_step)
+#and back down
+a2 = numpy.arange(final_dac_voltage,initial_dac_voltage-dac_voltage_step,-dac_voltage_step)
+
+dac_voltage_list = numpy.concatenate((a2,a1))
 
 ###############################################################################
 ############################ SET-UP DATA LOGGING ##############################
@@ -65,9 +68,9 @@ try:
 
     log.add(oscilloscope,'screenshot')
 
-    log.new_file(f'testing/mppt_test_data/ltc3119mppt({load_current}A).txt')
+    log.new_file(f'testing/mppt_test_data_upanddown/ltc3119mppt({load_current}A).txt')
 
-    oscilloscope.set_screenshot_path(f'testing/mppt_test_data/screenshots({load_current}A)/*')
+    oscilloscope.set_screenshot_path(f'testing/mppt_test_data_upanddown/screenshots({load_current}A)/*')
 
 ###############################################################################
 ############################# SET-UP INSTRUMENTS ##############################
