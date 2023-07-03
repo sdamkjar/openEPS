@@ -1,0 +1,62 @@
+* Complex Photovoltaic (PV) panel model library (06.2022)
+* Reference: http://sunceco.com/wp-content/uploads/2017/01/SEP300-320.pdf
+
+
+* Subcircuit for PV panel
+*
+* Terminals: 1 - Positive terminal, 2 - Negative terminal
+*
+* Parameters:
+*   percentIllumination - The amount of illumination received by the panel in percentage
+*   numSeries - Number of PV cells connected in series
+*   numParallel - Number of PV cells connected in parallel
+*
+* Internal electrical parameters (AM0 (135.3 mW/cm²) 28°C, Bare Cell):
+*   voc - open circuit voltage [V]
+*   isc - short circuit current (jsc * surface_area) [A]
+*   vmp - maximum power voltage [V]
+*   imp - maximum power current (jmp * surface_area) [A]
+*   tk_voc - open circuit voltage temperature coeffiecient [V/°C]
+*   tk_isc - short circuit current temperature coefficient [A/°C]
+*
+
+* Reference: http://www.spectrolab.com/DataSheets/cells/PV%20XTJ%20Cell%205-20-10.pdf
+* SpectroLab 29.5% NeXt Triple Junction (XTJ) Solar Cells (surface_area = 26.62cm²)
+.subckt XTJ 1 2 params: percentIllumination=50 numSeries=1 numParallel=1
+    .param illu = {percentIllumination/100}
+    * Instance of PV cell model representing the entire panel
+    xu1 1 2 PV_cplx voc={2.633*numSeries} isc={0.472*numParallel} vmp={2.348*numSeries} imp={0.453*numParallel} tk_voc=-0.0058 tk_isc=0.0003 illu={illu}
+.ends XTJ
+
+
+
+
+* Subcircuit for individual PV cell
+.subckt PV_cplx v+ v- params: percentIllumination=100
+    * Diode for the semiconductor behavior of the PV cell
+    D1 N002 v- pvdiode2
+
+    * Shunt resistance for loss due to recombination of charges
+    Rsh N002 v- R=rsh_t
+
+    * Series resistance for internal resistance of the material
+    Rs N002 v+ R=rs_t
+
+    * Photovoltaic behavior, creation of electron-hole pairs due to illumination
+    Bph v- N002 I=ipv_t*{percentIllumination/100}
+
+    * Parameters definition considering temperature
+    .param voc_t voc*(1-tk_voc*(25-temp))
+    .param isc_t isc*(1-tk_isc*(25-temp))
+    .param vmp_t vmp*(1-tk_voc*(25-temp))
+    .param imp_t imp*(1-tk_isc*(25-temp))
+    .param rs_t (voc_t-vmp_t)/(16*imp_t)
+    .param rsh_t 5*vmp_t/(isc_t-imp_t)
+    .param io_t ((rs_t+rsh_t)*isc_t-voc_t)/(rsh_t*exp(voc_t/(a_n*vt_t)))
+    .param vt_t (1.38e-23*(273+temp))/1.6e-19
+    .param ipv_t isc_t*(rsh_t+rs_t)/rsh_t
+    .param a_n 1.3*voc/0.7
+
+    * Diode model for the core behavior of PV cell
+    .model PVDiode2 D(Is=io_t N=a_n Tnom=temp)
+.ends PV_cplx
