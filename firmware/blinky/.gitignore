@@ -1,0 +1,12 @@
+# Project files
+
+.ccsproject
+.cproject
+.project
+.settings/
+.cproject
+.project
+.ccproject
+.launches/
+Debug/
+Release/
