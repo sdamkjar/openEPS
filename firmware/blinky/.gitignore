@@ -3,10 +3,7 @@
 .ccsproject
 .cproject
 .project
-.settings
-.cproject
-.project
-.ccproject
+.settings/
 .launches/
 Debug/
 Release/
