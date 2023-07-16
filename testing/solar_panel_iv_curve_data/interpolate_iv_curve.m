@@ -22,24 +22,68 @@
 % Input variables
 file = 'Spectro_Lab_XTJ_iv_curve.csv';
 surfaceArea_cm2 = 26.62;  % Example surface area of the solar cell in cm^2
-cellConfiguration = '2s1P';  % Example cell configuration
+cellConfiguration = '1s1P';  % Example cell configuration
 
 % Call the function to get interpolated data
 interpolatedData = readIVCurve(file, surfaceArea_cm2, cellConfiguration);
 
-% Display the interpolated data in a plot
-figure;
-plot(interpolatedData.Voltage_V, interpolatedData.Current_mA,'o-');
+% Calculate the power for each data point
+power = interpolatedData.Voltage_V .* interpolatedData.Current_mA;
+
+% Find the maximum power point (MPP)
+[~, idxMPP] = max(power);
+voltageMPP = interpolatedData.Voltage_V(idxMPP);
+powerMPP = power(idxMPP);
+
+% Set the figure dimensions for IEEE single column
+figureWidth = 4; % inches
+figureHeight = figureWidth * 0.75; % adjust the height proportionally as desired
+
+% Figure 1: PV Curve (Power vs. Voltage)
+figure('Units', 'inches', 'Position', [0, 0, figureWidth, figureHeight]);
+plot(interpolatedData.Voltage_V, power);
+ylim([0 1300])
+hold on;
+line([voltageMPP voltageMPP], [0 powerMPP], 'Color', 'k', 'LineStyle', '--');
+plot(voltageMPP, powerMPP, 'ro', 'MarkerSize', 5, 'MarkerFaceColor', 'r');
+text(voltageMPP, powerMPP, 'Max Power Point  ', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+text(voltageMPP, 0, 'V_{MP}', 'VerticalAlignment', 'top', 'HorizontalAlignment', 'center');
+hold off;
 xlabel('Voltage (V)');
-ylabel('Current (mA)');
-title('IV Curve');
+ylabel('Power (mW)');
 grid on;
 
-% Save the interpolated data as a CSV file
-csvFileName = 'interpolatedData.csv';
-writetable(interpolatedData, csvFileName);
-fprintf('Interpolated data saved as %s\n', csvFileName);
+% Set the x-axis ticks to show every 1 V
+xticks = 0:1:3;
+set(gca, 'XTick', xticks);
 
+hold on
+
+% Calculate PV curves for different temperatures
+temperature = [-20, 80]; % Temperature conditions in degrees Celsius
+temperatureCoeff_current = 10e-6; % Temperature coefficient for current density in A/cm^2/K
+temperatureCoeff_voltage = -6e-3; % Temperature coefficient for voltage in V/K
+
+for i = 1:numel(temperature)
+    % Adjust the current and voltage values based on temperature coefficients
+    adjustedCurrent = interpolatedData.Current_mA + temperatureCoeff_current * (28-temperature(i)) * surfaceArea_cm2;
+    adjustedVoltage = interpolatedData.Voltage_V - temperatureCoeff_voltage * (28-temperature(i));
+    % Calculate the power for the adjusted PV curve
+    adjustedPower = adjustedVoltage .* adjustedCurrent;
+    % Plot the adjusted PV curve
+    plot(adjustedVoltage, adjustedPower);
+    hold on;
+end
+hold off;
+legend('28°C','','', '-20°C', '80°C', 'Location', 'northwest');
+
+% Set the x-axis ticks to show every 1 V
+xticks = 0:1:3;
+set(gca, 'XTick', xticks);
+
+% Save the PV curves figure as an SVG image
+pvCurveSvgFileName = 'solar_cell_pv_curves.svg';
+saveas(gcf, pvCurveSvgFileName, 'svg');
 
 % Function to read IV curve data and interpolate
 function interpolatedData = readIVCurve(file, surfaceArea_cm2, varargin)

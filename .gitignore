@@ -300,3 +300,45 @@ Thumbs.db
 # Ignore LTSpice generated .tex file
 *.tex
 
+
+################################################
+############ Code Composer Studio ##############
+################################################
+
+# Project files
+
+*/.ccsproject
+*/.cproject
+*/.project
+*/.settings/
+*/.settings/
+*/.cproject
+*/.project
+*/.ccproject
+*/.launches/
+*/Debug/
+*/Release/
+
+# Workspace
+
+*/.metadata/
+*/.tempFiles/
+*/.jxbrowser.userdata
+*/dvt/
+*/RemoteSystemsTempFiles/
+
+# Compiled Object files
+*.o
+
+# Compiled Static libraries
+*.a
+
+# Compiled Dynamic libraries
+*.so
+
+# Executables
+*.elf
+*.out
+*.hex
+*.bin
+

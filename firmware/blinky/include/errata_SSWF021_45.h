@@ -1,14 +1,11 @@
-/** @file sys_main.c 
-*   @brief Application main file
+/** @file errata_SSWF021_45.c 
+*   @brief errata for PLLs 
 *   @date 11-Dec-2018
 *   @version 04.07.01
 *
-*   This file contains an empty main function,
-*   which can be used for the application.
 */
-
 /* 
-* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com 
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -41,36 +38,12 @@
 *
 */
 
+#ifndef INCLUDE_ERRATA_SSWF021_45_H_
+#define INCLUDE_ERRATA_SSWF021_45_H_
 
-/* USER CODE BEGIN (0) */
-/* USER CODE END */
-
-/* Include Files */
-
-#include "sys_common.h"
-
-/* USER CODE BEGIN (1) */
-/* USER CODE END */
-
-/** @fn void main(void)
-*   @brief Application main function
-*   @note This function is empty by default.
-*
-*   This function is called after startup.
-*   The user can use this function to implement the application.
-*/
-
-/* USER CODE BEGIN (2) */
-/* USER CODE END */
-
-int main(void)
-{
-/* USER CODE BEGIN (3) */
-/* USER CODE END */
-
-    return 0;
-}
+uint32 _errata_SSWF021_45_both_plls(uint32 count);
+uint32 _errata_SSWF021_45_pll1(uint32 count);
+uint32 _errata_SSWF021_45_pll2(uint32 count);
 
 
-/* USER CODE BEGIN (4) */
-/* USER CODE END */
+#endif /* INCLUDE_ERRATA_SSWF021_45_H_ */
