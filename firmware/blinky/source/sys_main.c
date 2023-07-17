@@ -50,11 +50,10 @@
 #include "sys_common.h"
 
 /* USER CODE BEGIN (1) */
+#include "system.h"
 #include "rti.h"
 #include "het.h"
 #include "gio.h"
-#include "i2c.h"
-#include "eps.h"
 /* USER CODE END */
 
 /** @fn void main(void)
@@ -72,16 +71,10 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
     rtiInit();
-    i2cInit();
-
     gioSetDirection(hetPORT1, 0xFFFFFFFF);
     rtiEnableNotification(rtiNOTIFICATION_COMPARE0);
     _enable_IRQ();
     rtiStartCounter(rtiCOUNTER_BLOCK0);
-
-    uint8_t val = 0;
-    //TCA9548A_RegisterGet(i2cREG1, EPS_I2CMUX1_ADDR, &val);
-
     while(1);
 /* USER CODE END */
 
@@ -93,5 +86,6 @@ int main(void)
 void rtiNotification(uint32 notification)
 {
     gioSetPort(hetPORT1, gioGetPort(hetPORT1) ^ (0x00000001<<16));
+
 }
 /* USER CODE END */

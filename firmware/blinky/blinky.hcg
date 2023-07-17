@@ -306,9 +306,7 @@
       <HDRI2C>
         <NAME>i2c.h</NAME>
       </HDRI2C>
-      <SRCI2C>
-        <NAME>i2c.c</NAME>
-      </SRCI2C>
+      <SRCI2C/>
       <HDRDCC_R>
         <NAME>reg_dcc.h</NAME>
       </HDRDCC_R>
@@ -547,7 +545,7 @@
         <PATH>include\i2c.h</PATH>
       </HDRI2C>
       <SRCI2C>
-        <PATH>source\i2c.c</PATH>
+        <PATH/>
       </SRCI2C>
     </FILENAMES>
   </I2C>
