@@ -111,19 +111,19 @@ void rtiInit(void)
     *     - 0x00000000: Divide by 2^32
     *     - 0x00000001-0xFFFFFFFF: Divide by (CPUC1 + 1)
     */
-    rtiREG1->CNT[1U].CPUCx = 10U;
+    rtiREG1->CNT[1U].CPUCx = 21U;
 
     /** - Setup compare 0 value. This value is compared with selected free running counter. */
-    rtiREG1->CMP[0U].COMPx = 550000U;
+    rtiREG1->CMP[0U].COMPx = 1100000U;
 
     /** - Setup update compare 0 value. This value is added to the compare 0 value on each compare match. */
-    rtiREG1->CMP[0U].UDCPx = 550000U;
+    rtiREG1->CMP[0U].UDCPx = 1100000U;
 
     /** - Setup compare 1 value. This value is compared with selected free running counter. */
-    rtiREG1->CMP[1U].COMPx = 275000U;
+    rtiREG1->CMP[1U].COMPx = 550000U;
 
     /** - Setup update compare 1 value. This value is added to the compare 1 value on each compare match. */
-    rtiREG1->CMP[1U].UDCPx = 275000U;
+    rtiREG1->CMP[1U].UDCPx = 550000U;
 
     /** - Setup compare 2 value. This value is compared with selected free running counter. */
     rtiREG1->CMP[2U].COMPx = 80000U;
