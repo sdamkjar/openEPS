@@ -54,6 +54,10 @@
 #include "rti.h"
 #include "het.h"
 #include "gio.h"
+#include "i2c.h"
+#include "eps.h"
+#include "tca9548a.h"
+#include "low_power_mode.h"
 /* USER CODE END */
 
 /** @fn void main(void)
@@ -71,10 +75,24 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
     rtiInit();
+    i2cInit();
     gioSetDirection(hetPORT1, 0xFFFFFFFF);
     rtiEnableNotification(rtiNOTIFICATION_COMPARE0);
     _enable_IRQ();
     rtiStartCounter(rtiCOUNTER_BLOCK0);
+
+    // Set HET1_26 to high
+    gioSetBit(hetPORT1, 26, 1);
+
+    // Set HET1_22 to high
+    gioSetBit(hetPORT1, 22, 1);
+
+    uint8_t val = 0;
+
+    TCA9548A_RegisterSet(i2cREG1, EPS_I2CMUX1_ADDR, TCA9548A_CHANNEL_3);
+
+    TCA9548A_GetChannel(i2cREG1, EPS_I2CMUX1_ADDR, TCA9548A_Channel_3, &val);
+
     while(1);
 /* USER CODE END */
 
@@ -85,7 +103,9 @@ int main(void)
 /* USER CODE BEGIN (4) */
 void rtiNotification(uint32 notification)
 {
+
     gioSetPort(hetPORT1, gioGetPort(hetPORT1) ^ (0x00000001<<16));
+    
 
 }
 /* USER CODE END */
