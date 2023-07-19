@@ -30,7 +30,7 @@ void QUEUE_Init(Queue* const me,
 /* operation Cleanup() */
 void QUEUE_Cleanup(Queue* const me)
 {
-
+    /* No code here */
 }
 
 /* operation isFull() */

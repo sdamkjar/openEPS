@@ -8,20 +8,42 @@
 #include "ina226.h"
 #include "port_i2c.h"
 #include "stdint.h"
+#include <stdlib.h>
+
 
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
 
+void INA226_Init(INA226_TypeDef* const ina226,
+              PORT_I2C_Reg_TypeDef *i2c,
+              INA226_Address_TypeDef addr,
+              uint8_t muxChan,
+              uint32_t senseResistor,
+              INA226_Err_TypeDef (*RegisterGet)(INA226_TypeDef* const ina226,
+                                                INA226_Register_TypeDef reg,
+                                                uint16_t *val),
+              INA226_Err_TypeDef (*RegisterSet)(INA226_TypeDef* const ina226,
+                                                INA226_Register_TypeDef reg,
+                                                uint16_t val))
+{
+  /* initialize attributes */
+  ina226->i2c = i2c;
+  ina226->addr = addr;
+  ina226->muxChan = muxChan;
+  ina226->senseResistor = senseResistor;
+
+  /* initialize function pointers */
+  ina226->RegisterGet = RegisterGet;
+  ina226->RegisterSet = RegisterSet;
+}
+
 /***************************************************************************//**
  * @brief
  *   Set content of a register.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address of slave, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[in] reg
  *   Register to write (input register cannot be written).
@@ -32,8 +54,7 @@
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_RegisterSet(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_RegisterSet(INA226_TypeDef* const ina226,
                          INA226_Register_TypeDef reg,
                          uint16_t val)
 {
@@ -43,7 +64,7 @@ INA226_Err_TypeDef INA226_RegisterSet(PORT_I2C_Reg_TypeDef *i2c,
   data[1] = (uint8_t)(val >> 8);
   data[2] = (uint8_t)val;
 
-  return (INA226_Err_TypeDef)PORT_I2C_Send(i2c, addr, 3, data);
+  return (INA226_Err_TypeDef)PORT_I2C_Send(ina226->i2c, ina226->addr, 3, data);
 
 }
 
@@ -52,11 +73,8 @@ INA226_Err_TypeDef INA226_RegisterSet(PORT_I2C_Reg_TypeDef *i2c,
  * @brief
  *   Get current content of a register.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[in] reg
  *   Register to read.
@@ -67,8 +85,7 @@ INA226_Err_TypeDef INA226_RegisterSet(PORT_I2C_Reg_TypeDef *i2c,
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_RegisterGet(INA226_TypeDef* const ina226,
                          INA226_Register_TypeDef reg,
                          uint16_t *val)
 {
@@ -84,7 +101,7 @@ INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
   //  Send address of register to be read
   /*****************************************/
 
-  ret = (INA226_Err_TypeDef)PORT_I2C_Send(i2c, addr, 1, regid);
+  ret = (INA226_Err_TypeDef)PORT_I2C_Send(ina226->i2c, ina226->addr, 1, regid);
 
   if (ret != INA226_Err_NoError)
   {
@@ -95,7 +112,7 @@ INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
   //  Start receving the data From Slave
   /*****************************************/
 
-  ret = (INA226_Err_TypeDef)PORT_I2C_Receive(i2c, addr, 2, data);
+  ret = (INA226_Err_TypeDef)PORT_I2C_Receive(ina226->i2c, ina226->addr, 2, data);
 
   if (ret != INA226_Err_NoError)
   {
@@ -113,6 +130,21 @@ INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
 
 }
 
+INA226_TypeDef *INA226_Create(PORT_I2C_Reg_TypeDef *i2c,
+                               INA226_Address_TypeDef addr,
+                               uint8_t muxChan,
+                               uint32_t senseResistor)
+{
+  INA226_TypeDef *ina226 = (INA226_TypeDef *)malloc(sizeof(INA226_TypeDef));
+  INA226_Init(ina226, i2c, addr, muxChan, senseResistor, INA226_RegisterGet, INA226_RegisterSet);
+  return ina226;
+}
+
+void INA226_Destroy(INA226_TypeDef *ina226)
+{
+  free(ina226);
+}
+
 
 /***************************************************************************//**
  * @brief
@@ -124,11 +156,8 @@ INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
  *   - Full-scale range: -81.92 mV (0xFFFF) to + 81.92 mV (0x7FFF).
  *   - LSB represents 2.5 uV.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[out] val
  *   Reference to place register read.
@@ -136,15 +165,14 @@ INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_ReadShuntVoltage(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadShuntVoltage(INA226_TypeDef* const ina226,
                          int *val)
 {
 
   INA226_Err_TypeDef ret = INA226_Err_NoError;
   uint16_t tmp = 0;
 
-  ret = INA226_RegisterGet(i2c,addr,INA226_RegShuntV,&tmp);
+  ret = ina226->RegisterGet(ina226,INA226_RegShuntV,&tmp);
 
   if (ret != INA226_Err_NoError)
   {
@@ -173,11 +201,8 @@ INA226_Err_TypeDef INA226_ReadShuntVoltage(PORT_I2C_Reg_TypeDef *i2c,
  *   - Full-scale range: 0 V (0x0000) to + 40.96 V (0x7FFF).
  *   - LSB represents 1.25 mV.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[out] val
  *   Reference to place register read.
@@ -185,8 +210,7 @@ INA226_Err_TypeDef INA226_ReadShuntVoltage(PORT_I2C_Reg_TypeDef *i2c,
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_ReadBusVoltage(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadBusVoltage(INA226_TypeDef* const ina226,
                          int *val)
 {
 
@@ -194,7 +218,7 @@ INA226_Err_TypeDef INA226_ReadBusVoltage(PORT_I2C_Reg_TypeDef *i2c,
 
   uint16_t tmp = 0;
 
-  ret = INA226_RegisterGet(i2c,addr,INA226_RegBusV,&tmp);
+  ret = ina226->RegisterGet(ina226,INA226_RegBusV,&tmp);
 
   if (ret != INA226_Err_NoError)
   {
@@ -224,11 +248,8 @@ INA226_Err_TypeDef INA226_ReadBusVoltage(PORT_I2C_Reg_TypeDef *i2c,
  *   - Full-scale range: 0 V (0x0000) to + 40.96 mV (0x7FFF).
  *   - LSB represents 1.25 mV.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[out] val
  *   Reference to place register read.
@@ -236,8 +257,7 @@ INA226_Err_TypeDef INA226_ReadBusVoltage(PORT_I2C_Reg_TypeDef *i2c,
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_ReadCurr(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadCurr(INA226_TypeDef* const ina226,
                          int *val)
 {
 
@@ -245,7 +265,7 @@ INA226_Err_TypeDef INA226_ReadCurr(PORT_I2C_Reg_TypeDef *i2c,
 
   uint16_t tmp = 0;
 
-  ret = INA226_RegisterGet(i2c,addr,INA226_RegCurr,&tmp);
+  ret = ina226->RegisterGet(ina226,INA226_RegCurr,&tmp);
 
   if (ret != INA226_Err_NoError)
   {
@@ -284,11 +304,8 @@ INA226_Err_TypeDef INA226_ReadCurr(PORT_I2C_Reg_TypeDef *i2c,
  *   - Full-scale range: 0 V (0x0000) to + 40.96 mV (0x7FFF).
  *   - LSB represents 1.25 mV.
  *
- * @param[in] i2c
- *   Pointer to I2C peripheral register block.
- *
- * @param[in] addr
- *   I2C address, in 8 bit format, where LSB is reserved for R/W bit.
+ * @param[in] ina226
+ *  Pointer to INA226 object.
  *
  * @param[out] val
  *   Reference to place register read.
@@ -296,8 +313,7 @@ INA226_Err_TypeDef INA226_ReadCurr(PORT_I2C_Reg_TypeDef *i2c,
  * @return
  *   Returns 0 if no error.
  ******************************************************************************/
-INA226_Err_TypeDef INA226_ReadPower(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadPower(INA226_TypeDef* const ina226,
                          int *val)
 {
 
@@ -305,7 +321,7 @@ INA226_Err_TypeDef INA226_ReadPower(PORT_I2C_Reg_TypeDef *i2c,
 
   uint16_t tmp = 0;
 
-  ret = INA226_RegisterGet(i2c,addr,INA226_RegPower,&tmp);
+  ret = ina226->RegisterGet(ina226,INA226_RegPower,&tmp);
 
   if (ret != INA226_Err_NoError)
   {

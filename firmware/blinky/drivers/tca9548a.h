@@ -78,14 +78,14 @@ typedef enum
 */
 typedef enum
 {
-  TCA9548A_Channel_0 = 0U,
-  TCA9548A_Channel_1 = 1U,
-  TCA9548A_Channel_2 = 2U,
-  TCA9548A_Channel_3 = 3U,
-  TCA9548A_Channel_4 = 4U,
-  TCA9548A_Channel_5 = 5U,
-  TCA9548A_Channel_6 = 6U,
-  TCA9548A_Channel_7 = 7U
+  TCA9548A_Channel_0 = TCA9548A_CHANNEL_0, /**< Channel 0 */
+  TCA9548A_Channel_1 = TCA9548A_CHANNEL_1, /**< Channel 1 */
+  TCA9548A_Channel_2 = TCA9548A_CHANNEL_2, /**< Channel 2 */
+  TCA9548A_Channel_3 = TCA9548A_CHANNEL_3, /**< Channel 3 */
+  TCA9548A_Channel_4 = TCA9548A_CHANNEL_4, /**< Channel 4 */
+  TCA9548A_Channel_5 = TCA9548A_CHANNEL_5, /**< Channel 5 */
+  TCA9548A_Channel_6 = TCA9548A_CHANNEL_6, /**< Channel 6 */
+  TCA9548A_Channel_7 = TCA9548A_CHANNEL_7  /**< Channel 7 */
 } TCA9548A_Channel_TypeDef;
 
 /** @enum TCA9548A_Err_TypeDef

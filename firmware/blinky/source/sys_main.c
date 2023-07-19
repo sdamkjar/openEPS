@@ -52,11 +52,15 @@
 /* USER CODE BEGIN (1) */
 #include "system.h"
 #include "rti.h"
+#include "sci.h"
 #include "het.h"
 #include "gio.h"
 #include "i2c.h"
 #include "eps.h"
+#include "print.h"
+#include "queue.h"
 #include "tca9548a.h"
+#include "ina226.h"
 #include "low_power_mode.h"
 /* USER CODE END */
 
@@ -69,31 +73,69 @@
 */
 
 /* USER CODE BEGIN (2) */
+
+/* Global Variables */
+static char CommandString[PRINT_BUFFER_SIZE + 1];
+static char uartRxData;
+Queue *receiveBuffer;
+
+/* Function Prototypes */
+void rtiNotification(uint32_t notification);
+void ssiInterrupt(void);
+void PORT_UART_ISR(PORT_UART_Reg_TypeDef *uart, uint32_t flags);
+
 /* USER CODE END */
 
 int main(void)
 {
 /* USER CODE BEGIN (3) */
+
+    /* Initialize necessary peripherals and configurations */
+
+    INA226_TypeDef *battery_bus_sensor;
+    
+    battery_bus_sensor = INA226_Create(i2cREG1,
+                                    EPS_BATBUS_I2CADDR,
+                                    EPS_BATBUS_MUXCHAN,
+                                    EPS_BATBUS_SENSERESISTOR);
+
     rtiInit();
     i2cInit();
-    gioSetDirection(hetPORT1, 0xFFFFFFFF);
+
+    PORT_UART_Init();
+    PORT_UART_Enable_ISR(PORT_UART_UART0,PORT_UART_Flags_RX);
+
+    /* Initialize receive buffer */
+    receiveBuffer = QUEUE_Create();
+
+    /* Set direction for I2C_MUX_nRESET and LED pins */
+    gioSetDirection(EPS_GPIO_LED_PORT, (1<<EPS_GPIO_LED_PIN) | (1<<EPS_GPIO_I2CMUXRESET_PIN));
+
+    /* Enable RTI Compare 0 interrupt notification and start RTI counters */
     rtiEnableNotification(rtiNOTIFICATION_COMPARE0);
-    _enable_IRQ();
     rtiStartCounter(rtiCOUNTER_BLOCK0);
+    rtiStartCounter(rtiCOUNTER_BLOCK1);
 
-    // Set HET1_26 to high
-    gioSetBit(hetPORT1, 26, 1);
+    _enable_IRQ();
 
-    // Set HET1_22 to high
-    gioSetBit(hetPORT1, 22, 1);
+    // Set HET1_26 (I2C_MUX_nRESET) to high
+    gioSetBit(EPS_GPIO_I2CMUXRESET_PORT, EPS_GPIO_I2CMUXRESET_PIN, 1);
+    TCA9548A_RegisterSet(i2cREG1, EPS_MUX1_I2CADDR, EPS_BATBUS_MUXCHAN);
+    uint16_t voltage = 0;
+    uint16_t shunt_voltage = 0;
+    battery_bus_sensor->RegisterGet(battery_bus_sensor, INA226_RegBusV, &voltage);
+    battery_bus_sensor->RegisterGet(battery_bus_sensor, INA226_RegShuntV, &shunt_voltage);
+    // Clear HET1_26 (I2C_MUX_nRESET) to low
+    gioSetBit(EPS_GPIO_I2CMUXRESET_PORT, EPS_GPIO_I2CMUXRESET_PIN, 0);
 
-    uint8_t val = 0;
+    PORT_UART_Receive(PORT_UART_UART0,1,&uartRxData);
 
-    TCA9548A_RegisterSet(i2cREG1, EPS_I2CMUX1_ADDR, TCA9548A_CHANNEL_3);
+    /* Run forever */
+    while (1)
+    {
+        /* Do nothing...*/
+    }
 
-    TCA9548A_GetChannel(i2cREG1, EPS_I2CMUX1_ADDR, TCA9548A_Channel_3, &val);
-
-    while(1);
 /* USER CODE END */
 
     return 0;
@@ -101,11 +143,97 @@ int main(void)
 
 
 /* USER CODE BEGIN (4) */
-void rtiNotification(uint32 notification)
+
+void rtiNotification(uint32_t notification)
+{
+    if(notification == rtiNOTIFICATION_COMPARE0)
+    {
+        /* Toggle HET1_16 (LED) */
+        gioSetPort(EPS_GPIO_LED_PORT, gioGetPort(EPS_GPIO_LED_PORT) ^ (1<<EPS_GPIO_LED_PIN));
+
+    }
+}
+
+#pragma INTERRUPT(ssiInterrupt, IRQ)
+void ssiInterrupt(void)
 {
 
-    gioSetPort(hetPORT1, gioGetPort(hetPORT1) ^ (0x00000001<<16));
-    
+    static char * function;
+    static char * arg[EPS_MAX_ARGS];
+    static uint8_t i = 0;
 
+    if (systemREG1->SSIVEC & 0x1U )
+    {
+        /* Extract function name from command string */
+        function = strtok(CommandString,"(");
+
+        /* Extract arguments from command string */
+        for(i = 0; i<EPS_MAX_ARGS; i++)
+        {
+            arg[i] = strtok(NULL,",");
+            if (arg[i] == NULL) break;
+        }
+        i = i - 1;
+        arg[i] = strtok(arg[i],")");
+
+        /* Split argument strings into individual arguments */
+        for(i = 0; arg[i]!=NULL && i<EPS_MAX_ARGS; i++)
+        {
+            arg[i] = strtok(arg[i]," ");
+
+        }
+
+        /* Call the EPS_runCommand function with the parsed command */
+        EPS_runCommand(function,arg,i);
+
+    }
 }
+
+void PORT_UART_ISR(PORT_UART_Reg_TypeDef *uart, uint32_t flags)
+{
+    static uint8_t i = 0;
+    static bool commandReceived = false;
+
+    if(flags & PORT_UART_Flags_RX)
+    {
+        if (uartRxData == '\r' || uartRxData == '\n')
+        {
+            if (commandReceived)
+            {
+                /* Insert null terminator at the end of command string */
+                receiveBuffer->insert(receiveBuffer,'\0');
+
+                /* Copy command string from receive buffer to CommandString */
+                for (i = 0; (!receiveBuffer->isEmpty(receiveBuffer)); i++)
+                {
+                    CommandString[i] = receiveBuffer->remove(receiveBuffer);
+                }
+
+                /* Clear commandReceived flag */
+                commandReceived = false;
+
+                /* Trigger SSISR1 to process the command */
+                systemREG1->SSISR1 = 0x7500U;
+            }
+        }
+        else if (!receiveBuffer->isFull(receiveBuffer))
+        {
+            /* Convert lowercase characters to uppercase */
+            if (uartRxData >= 'a' && uartRxData <= 'z')
+            {
+                uartRxData = uartRxData - 0x20;
+            }
+
+            /* Insert received character into the receive buffer */
+            receiveBuffer->insert(receiveBuffer, uartRxData);
+
+            /* Set commandReceived flag */
+            commandReceived = true;
+        }
+
+        /* Receive next character */
+        PORT_UART_Receive(uart,1,&uartRxData);
+    }
+}
+
 /* USER CODE END */

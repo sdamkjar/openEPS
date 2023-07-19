@@ -103,11 +103,11 @@ TCA9548A_Err_TypeDef TCA9548A_SetChannel(PORT_I2C_Reg_TypeDef *i2c,
   /* Set the status of the bit for the specified channel */
   if (channel_status)
   {
-    reg_val |= (0x1<<channel);
+    reg_val |= channel;
   }
   else
   {
-    reg_val &= ~(0x1<<channel);
+    reg_val &= ~channel;
   }
 
   /* Write the updated channel status register */
@@ -150,7 +150,7 @@ TCA9548A_Err_TypeDef TCA9548A_GetChannel(PORT_I2C_Reg_TypeDef *i2c,
   }
 
   /* Determine the status of the channel */
-  if (reg_val & (0x1<<channel))
+  if (reg_val & channel)
   {
     *channel_status = 1;
   }

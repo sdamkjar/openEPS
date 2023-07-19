@@ -28,7 +28,7 @@ typedef sciBASE_t PORT_UART_Reg_TypeDef;
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-#define PORT_UART_UART0 (scilinREG)
+#define PORT_UART_UART0 (sciREG)
 #define PORT_UART_ISR sciNotification
 #define PORT_UART_Init sciInit
 #define PORT_UART_Enable_ISR sciEnableNotification

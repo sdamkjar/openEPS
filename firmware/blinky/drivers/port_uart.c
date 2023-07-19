@@ -76,7 +76,7 @@ PORT_UART_Err_TypeDef PORT_UART_Receive(PORT_UART_Reg_TypeDef *uart,
                                 uint32 length,
                                 char *data)
 {
-    sciReceive(uart,1, (uint8_t*)data);
+    sciReceive(uart,length, (uint8_t*)data);
     
     return (PORT_UART_Err_TypeDef)sciRxError(uart);
 }

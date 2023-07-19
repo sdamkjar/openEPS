@@ -325,30 +325,57 @@ typedef enum
  *****************************   PROTOTYPES   **********************************
  ******************************************************************************/
 
-INA226_Err_TypeDef INA226_RegisterSet(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
-                         INA226_Register_TypeDef reg,
-                         uint16_t val);
+typedef struct INA226 INA226_TypeDef;
+struct INA226 {
+  PORT_I2C_Reg_TypeDef *i2c;
+  INA226_Address_TypeDef addr;
+  uint8_t muxChan;
+  uint32_t senseResistor;
+  INA226_Err_TypeDef (*RegisterSet)(INA226_TypeDef *const ina226,
+                                    INA226_Register_TypeDef reg,
+                                    uint16_t val);
+  INA226_Err_TypeDef (*RegisterGet)(INA226_TypeDef *const ina226,
+                                    INA226_Register_TypeDef reg,
+                                    uint16_t *val);
+};
 
-INA226_Err_TypeDef INA226_RegisterGet(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+void INA226_Init(INA226_TypeDef* const ina226,
+              PORT_I2C_Reg_TypeDef *i2c,
+              INA226_Address_TypeDef addr,
+              uint8_t muxChan,
+              uint32_t senseResistor,
+              INA226_Err_TypeDef (*RegisterGet)(INA226_TypeDef* const ina226,
+                                                INA226_Register_TypeDef reg,
+                                                uint16_t *val),
+              INA226_Err_TypeDef (*RegisterSet)(INA226_TypeDef* const ina226,
+                                                INA226_Register_TypeDef reg,
+                                                uint16_t val));
+
+INA226_Err_TypeDef INA226_RegisterGet(INA226_TypeDef *const ina226,
                          INA226_Register_TypeDef reg,
                          uint16_t *val);
 
-INA226_Err_TypeDef INA226_ReadShuntVoltage(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_RegisterSet(INA226_TypeDef *const ina226,
+                         INA226_Register_TypeDef reg,
+                         uint16_t val);
+
+INA226_TypeDef *INA226_Create(PORT_I2C_Reg_TypeDef *i2c,
+                               INA226_Address_TypeDef addr,
+                               uint8_t muxChan,
+                               uint32_t senseResistor);
+
+void INA226_Destroy(INA226_TypeDef *ina226);
+
+INA226_Err_TypeDef INA226_ReadShuntVoltage(INA226_TypeDef *const ina226,
                          int *val);
 
-INA226_Err_TypeDef INA226_ReadBusVoltage(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadBusVoltage(INA226_TypeDef *const ina226,
                          int *val);
 
-INA226_Err_TypeDef INA226_ReadPower(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadPower(INA226_TypeDef *const ina226,
                          int *val);
 
-INA226_Err_TypeDef INA226_ReadCurr(PORT_I2C_Reg_TypeDef *i2c,
-                         INA226_Address_TypeDef addr,
+INA226_Err_TypeDef INA226_ReadCurr(INA226_TypeDef *const ina226,
                          int *val);
 
 int INA226_BusVoltageToUV(int val);
