@@ -33,9 +33,9 @@
 #define INA226_BUSVOLTAGELSB (1250) /* Bus voltage LSB in uV */
 #define INA226_SHUNTVOLTAGELSB (2500) /* Bus voltage LSB in nV */
 
-
- /* I2C address of the INA226 */   /*	A1	|	A0 	*/
-                                   /* ------------- */
+ /* 7-bit I2C address of the INA226 */
+                                   /* 	A1	|	A0 	*/
+                                   /* ----------- */
 #define INA226_ADDR40     (0x40U)  /* 	GND	|	GND	*/
 #define INA226_ADDR41     (0x41U)  /* 	GND	|	VS	*/
 #define INA226_ADDR42     (0x42U)  /* 	GND	|	SDA	*/
