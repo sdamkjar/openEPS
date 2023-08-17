@@ -1,7 +1,7 @@
 message: "If you use this software, please cite it as below."
 authors:
-  - family-names: Stefan
-    given-names: Damkjar
+  - family-names: Damkjar
+    given-names: Stefan
     orcid: https://orcid.org/0000-0002-9077-1583
 title: "openEPS: Preliminary Release"
 version: 1.0
